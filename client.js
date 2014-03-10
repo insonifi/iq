@@ -1,56 +1,23 @@
 var net = require('net'),
 	messages = require('./messages'),
-	host = [],
-	error;
-//var app = require('express')()
-//  , server = require('http').createServer(app)
-//  , io = require('socket.io').listen(server)
-//  , Emitter = require('events').EventEmitter
-//  , queue = new Emitter;
-/**** Queue ****/
-//queue.array = new Array;
-//queue.push = function(item) {
-//	console.info('[queue] push');
-//	this.array.push(item);
-//	this.emit('new');
-//}
-//queue.on('new', function() {
-//		io.sockets.emit('msg', queue.shift());
-//	});
-//queue.shift = function() {
-//	console.info('[queue] pop');
-//	return this.array.shift();
-//}
-//queue.send = function(buffer) {
-//	this.emit('send', buffer);
-//}
-///**** HTTP server ****/
-//server.listen(8007);
-
-//app.get('/', function (req, res) {
-//  res.sendfile(__dirname + '/index.html');
-//});
-///**** Socket io ****/
-//io.sockets.on('connection', function (socket) {
-//	socket.emit('welcome', { ver: 'IIDK node 0.1' });
-//	var global_socket = socket;
-//	//flush queue first
-//	var message 
-//	while (message = queue.shift()) {
-//		socket.emit('msg', message);
-//	}
-//	socket.on('client', function (data) {
-//		queue.send(messages.msgToBuf(data));
-//	});
-//	
-//});
-if (process.argv[2]) {
-  host = process.argv[2].split(':');
-  if (!net.isIP(host[0])) {
-    console.error('IP address is ')
-  }
-} else {
-  console.error('No host specified\nclient.js <ip>:<port>');
+	host = function () {
+	  var host;
+    if (process.argv[2]) {
+      host = process.argv[2].split(':');
+      if (!net.isIP(host[0])) {
+        return new Error('No IP address')
+      }
+      if (!/\d+/.test(host[1])) {
+        return new Error('No port')
+      }
+    } else {
+      return new Error('No host specified\nclient.js <ip>:<port>')
+    }
+    return host
+	} ();
+	
+if (host instanceof Error) {
+  console.error(host);
   process.kill();
 }
 
