@@ -27,7 +27,7 @@ var client = net.connect({host: host[0], port: host[1]}, function () {
 	  connect = {
 		  msg: 'Event',
 		  type: 'SLAVE',
-		  id: 'A-PANTELEYEV',
+		  id: 'HOST',
 		  action: 'CONNECTED',
 		  params: {
 		    count: 6,
@@ -38,10 +38,15 @@ var client = net.connect({host: host[0], port: host[1]}, function () {
 			  'time': now.toLocaleTimeString(),
 			  'date': now.toISOString().slice(2,10)
 		}
-	}
-	console.log('Connecting to %s:%s', host[0], host[1])
-	client.write(messages.toBuf(connect));
-	//Event|SLAVE|a-panteleyev.1|CONNECTED|SOCKET<192.168.1.106> TRANSPORT_TYPE<SOCKET> module<iidk_test.exe> TRANSPORT_ID<1030> time<17:24:27> date<12-03-13>
+	},
+	parser = new messages.parser();
+	client.write(Buffer.concat(messages.serialize(connect));
+	console.log('Connecting to %s:%s', host[0], host[1]);
+	client.pipe(parser);
+	parser.on('message', function (msg) {
+	  client.write(messages.serialize(msg));
+	})
+	//Event|SLAVE|host.1|CONNECTED|SOCKET<192.168.1.106> TRANSPORT_TYPE<SOCKET> module<iidk_test.exe> TRANSPORT_ID<1030> time<17:24:27> date<12-03-13>
 });
 client.on('connect', function () {
   console.log('Connected');
@@ -51,9 +56,6 @@ client.on('end', function () {
 });
 client.on('close', function () {
   console.error('Disconnected');
-});
-client.on('data', function(chunk) {
-  client.write(messages.toBuf(messages.toMsg(chunk)))
 });
 client.on('error', function (err) {
 	console.error(err);

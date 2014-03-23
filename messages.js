@@ -12,20 +12,17 @@
  * }
  * 
  */
-var header = new Buffer([0xFF, 0xFF, 0x01, 0x00]),
-header_bin = header.binarySlice(),
-getFieldOffset = function (buffer, offset) {
-  var	length = buffer.readUInt8(offset);
-	if (length === 0xFF) {
-	  offset += 1;
-	  length = buffer.readUInt16LE(offset);
-	}
-	return length;
-},
-writeField = function (value) {
+var
+props = ['msg', 'type', 'id', 'action'],
+props_len = props.length,
+util = require('util'),
+Transform = require('stream').Transform,
+/* utility function */
+_writeField = function (value) {
   var length = value.length,
     offset,
     buffer,
+    header,
     writeNum = null;
   if (length < 255) {
     header = 1; /* 8bit Int */
@@ -43,12 +40,20 @@ writeField = function (value) {
   buffer.write(value, header, length, 'utf8');
   return buffer;
 },
-props = ['msg', 'type', 'id', 'action'],
-props_len = props.length;
-
-
+_getFieldOffset = function (buffer, offset) {
+  var	length = buffer.readUInt8(offset);
+	if (length === 0xFF) {
+	  offset += 1;
+	  try {
+  	  length = buffer.readUInt16LE(offset);
+	  } catch (e){
+	    return null
+	  }
+	}
+	return length;
+},
 /* Serialize JavaScript Object to binary protocol */
-module.exports.toBuf = function (Message) {
+_serialize = function (Message) {
   var idx,
     i,
     length,
@@ -60,7 +65,7 @@ module.exports.toBuf = function (Message) {
   buffers.push(new Buffer(Message.msg));
   /* primary fields */
 	for (idx = 1; idx < props_len; idx += 1) {
-	  buffers.push(writeField(Message[props[idx]]));
+	  buffers.push(_writeField(Message[props[idx]]));
   }
   /* number of parameters */
   if (Message.params.count > 0) {
@@ -69,16 +74,15 @@ module.exports.toBuf = function (Message) {
     /* parameters */
     for (name in Message.params) {
       if (Message.params.hasOwnProperty(name) && name !== 'count') {
-        buffers.push(writeField(name));
-        buffers.push(writeField(Message.params[name]));
+        buffers.push(_writeField(name));
+        buffers.push(_writeField(Message.params[name]));
       }
     }
   }
 	return Buffer.concat(buffers);
-}
-
+},
 /* Deserialize binary buffer to JavaScript Object */
-module.exports.toMsg = function (buffer) {
+_deserialize = function (buffer) {
 	var Message = {
 	    msg: '',
       type: '',
@@ -94,19 +98,14 @@ module.exports.toMsg = function (buffer) {
 	  param_count,
   	length = 0
   	offset = 0;
-	if (buffer.slice(0, 4).binarySlice() === header_bin) {
-    offset += 4;
-	} else {
-	  return new Error('Malformed message')
-	}
 	/* read message type */
-	length = getFieldOffset(buffer, offset);
+	length = _getFieldOffset(buffer, offset);
 	offset += 2;//skip 0x00 delimiter
 	Message[props[idx]] = buffer.toString('utf8', offset, offset + length);
   offset += length;
 	/* read primary message fields */
 	for (idx = 1; idx < props_len; idx += 1) {
-    length = getFieldOffset(buffer, offset);
+    length = _getFieldOffset(buffer, offset);
     length > 255 ? offset += 3 : offset += 1;
   	Message[props[idx]] = buffer.toString('utf8', offset, offset + length);
 	  offset += length;
@@ -117,12 +116,61 @@ module.exports.toMsg = function (buffer) {
   offset += 2;
   for (idx = param_count; idx--;) {
     for (i = 2; i--;) {
-    	length = getFieldOffset(buffer, offset);
+    	length = _getFieldOffset(buffer, offset);
     	length > 255 ? offset += 3 : offset += 1;
       param[i] = buffer.toString('utf8', offset, offset + length);
       offset += length;
     }
     Message.params[param[1]] = param[0];
   }
+  Message.length = offset;
   return Message;
+};
+
+/* stream transform */
+util.inherits(Protocol, Transform);
+
+function Protocol (options) {
+  if (!(this instanceof Protocol))
+    return new Protocol(options);
+
+  Transform.call(this, options);
+  this._inMsg = false;
+  this._raw = new Buffer(0);
+  this._header = (new Buffer([0xFF, 0xFF, 0x01, 0x00])).binarySlice();
 }
+
+Protocol.prototype._transform = function (chunk, encoding, done) {
+  var offset = 0,
+    marker = -1,
+    raw = null,
+    header_length = this._header.length,
+    msg = null;
+  
+  raw = Buffer.concat([this._raw, chunk]);
+  /* find next frame start */
+  while (offset < raw.length) {
+    if (raw.binarySlice(offset, offset + header_length) === this._header) {
+      offset += header_length;
+      try {
+        msg = _deserialize(raw.slice(offset));
+        this.emit('message', msg);
+        if (msg.length < raw.length) {
+          raw = raw.slice(offset + msg.length);
+          offset = 0;
+          this._raw = new Buffer(0);
+          continue;
+        }
+      } catch (err) {
+        this._raw = raw;
+        return;
+      }
+    }
+    offset += 1;
+  }
+  done();
+}
+
+module.exports.serialize = _serialize;
+module.exports.parser = Protocol;
+module.exports.deserialize = _deserialize;
