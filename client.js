@@ -39,13 +39,11 @@ var client = net.connect({host: host[0], port: host[1]}, function () {
 			  'date': now.toISOString().slice(2,10)
 		}
 	},
-	parser = new messages.parser();
-	client.write(Buffer.concat(messages.serialize(connect));
+	parser = new messages.parser(),
+  assembler =  new messages.assembler();
+  client.pipe(parser).pipe(assembler).pipe(client);
+  assembler.write(connect);
 	console.log('Connecting to %s:%s', host[0], host[1]);
-	client.pipe(parser);
-	parser.on('message', function (msg) {
-	  client.write(messages.serialize(msg));
-	})
 	//Event|SLAVE|host.1|CONNECTED|SOCKET<192.168.1.106> TRANSPORT_TYPE<SOCKET> module<iidk_test.exe> TRANSPORT_ID<1030> time<17:24:27> date<12-03-13>
 });
 client.on('connect', function () {

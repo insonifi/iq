@@ -127,22 +127,23 @@ _deserialize = function (buffer) {
   return Message;
 };
 
-/* stream transform */
-util.inherits(Protocol, Transform);
+/* transform stream */
+util.inherits(ProtocolIn, Transform);
 
-function Protocol (options) {
-  if (!(this instanceof Protocol))
-    return new Protocol(options);
+function ProtocolIn (options) {
+  if (!(this instanceof ProtocolIn))
+    return new ProtocolIn(options);
 
   Transform.call(this, options);
   this._inMsg = false;
   this._raw = new Buffer(0);
   this._header = (new Buffer([0xFF, 0xFF, 0x01, 0x00])).binarySlice();
+  this._readableState.objectMode = true;
+  this._writableState.objectMode = false;
 }
 
-Protocol.prototype._transform = function (chunk, encoding, done) {
+ProtocolIn.prototype._transform = function (chunk, encoding, done) {
   var offset = 0,
-    marker = -1,
     raw = null,
     header_length = this._header.length,
     msg = null;
@@ -154,7 +155,8 @@ Protocol.prototype._transform = function (chunk, encoding, done) {
       offset += header_length;
       try {
         msg = _deserialize(raw.slice(offset));
-        this.emit('message', msg);
+//        this.emit('message', msg);
+        this.push(msg);
         if (msg.length < raw.length) {
           raw = raw.slice(offset + msg.length);
           offset = 0;
@@ -162,6 +164,7 @@ Protocol.prototype._transform = function (chunk, encoding, done) {
           continue;
         }
       } catch (err) {
+        console.error('error', err);
         this._raw = raw;
         return;
       }
@@ -171,6 +174,23 @@ Protocol.prototype._transform = function (chunk, encoding, done) {
   done();
 }
 
-module.exports.serialize = _serialize;
-module.exports.parser = Protocol;
-module.exports.deserialize = _deserialize;
+util.inherits(ProtocolOut, Transform);
+
+function ProtocolOut (options) {
+  if (!(this instanceof ProtocolOut))
+    return new ProtocolOut(options);
+
+  Transform.call(this, options);
+  this._readableState.objectMode = false;
+  this._writableState.objectMode = true;
+}
+
+ProtocolOut.prototype._transform = function (chunk, encoding, done) {
+  this.push(_serialize(chunk));
+  done();
+}
+
+module.exports.parser = ProtocolIn;
+module.exports.assembler = ProtocolOut;
+//module.exports.serialize = _serialize;
+//module.exports.deserialize = _deserialize;
