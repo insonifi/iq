@@ -155,7 +155,7 @@ ProtocolIn.prototype._transform = function (chunk, encoding, done) {
       offset += header_length;
       try {
         msg = _deserialize(raw.slice(offset));
-//        this.emit('message', msg);
+        this.emit(msg.type + "|" + msg.action , msg);
         this.push(msg);
         if (msg.length < raw.length) {
           raw = raw.slice(offset + msg.length);
@@ -190,7 +190,7 @@ ProtocolOut.prototype._transform = function (chunk, encoding, done) {
   done();
 }
 
-module.exports.parser = ProtocolIn;
-module.exports.assembler = ProtocolOut;
+module.exports.decomposer = ProtocolIn;
+module.exports.composer = ProtocolOut;
 //module.exports.serialize = _serialize;
 //module.exports.deserialize = _deserialize;

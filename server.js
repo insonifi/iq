@@ -8,9 +8,12 @@ server.on('listening', function () {
 });
 
 server.on('connection', function (client) {
-  var parser = new messages.parser(),
-  assembler =  new messages.assembler();
-  client.pipe(parser).pipe(assembler).pipe(client);
+  var decomposer = new messages.decomposer(),
+  composer =  new messages.composer();
+  client.pipe(decomposer)//.pipe(composer).pipe(client);
+  decomposer.on('CAM|REC', function (msg) {
+    console.log(msg.id);
+  })
   
   client.on('error', function (err) {
     console.error(err);
