@@ -1,5 +1,9 @@
 var net = require('net'),
-	messages = require('./messages'),
+	messages = require('./lib/messages'),
+	decomposer = new messages.decomposer(),
+  composer =  new messages.composer();
+  emitter = require('events').EventEmitter,
+  loop = new emitter,
 	host = function () {
 	  var host;
     if (process.argv[2]) {
@@ -23,7 +27,7 @@ if (host instanceof Error) {
 
 /**** IIDK connect ****/
 var client = net.connect({host: host[0], port: host[1]}, function () {
-	var now = new Date(),
+	var now = new Date();
 	  connect = {
 		  msg: 'Event',
 		  type: 'SLAVE',
@@ -38,26 +42,26 @@ var client = net.connect({host: host[0], port: host[1]}, function () {
 			  'time': now.toLocaleTimeString(),
 			  'date': now.toISOString().slice(2,10)
 		}
-	},
-	decomposer = new messages.decomposer(),
-  composer =  new messages.composer();
-  client.pipe(decomposer).pipe(composer).pipe(client);
-  composer.write(connect);
+	};
+  composer.pipe(client);
 	console.log('Connecting to %s:%s', host[0], host[1]);
 	//Event|SLAVE|host.1|CONNECTED|SOCKET<192.168.1.106> TRANSPORT_TYPE<SOCKET> module<iidk_test.exe> TRANSPORT_ID<1030> time<17:24:27> date<12-03-13>
+
+	client.on('connect', function () {
+    console.log('Connected');
+  });
+  client.on('end', function () {
+    console.error('Connection terminated unexpectedly');
+  });
+  client.on('close', function () {
+    console.error('Disconnected');
+  });
+  client.on('error', function (err) {
+	  console.error(err);
+  });
+  client.on('timeout', function () {
+    console.log('Connection timed out');
+  })
+	
+	
 });
-client.on('connect', function () {
-  console.log('Connected');
-});
-client.on('end', function () {
-  console.error('Connection terminated unexpectedly');
-});
-client.on('close', function () {
-  console.error('Disconnected');
-});
-client.on('error', function (err) {
-	console.error(err);
-});
-client.on('timeout', function () {
-  console.log('Connection timed out');
-})

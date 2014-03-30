@@ -1,5 +1,11 @@
 var net = require('net'),
-  messages = require('./messages');
+  agent = require('webkit-devtools-agent'),
+  http = require('http'),
+  messages = require('./lib/messages'),
+  Conveyor = require('./lib/conveyor'),
+  conveyor = new Conveyor;
+
+console.log('pid', process.pid)
 /**** Server ****/
 server = net.createServer();
 server.listen(process.argv[2] || 21030);
@@ -10,11 +16,8 @@ server.on('listening', function () {
 server.on('connection', function (client) {
   var decomposer = new messages.decomposer(),
   composer =  new messages.composer();
-  client.pipe(decomposer)//.pipe(composer).pipe(client);
-  decomposer.on('CAM|REC', function (msg) {
-    console.log(msg.id);
-  })
-  
+  conveyor = new Conveyor;
+  client.pipe(decomposer).pipe(conveyor);
   client.on('error', function (err) {
     console.error(err);
   })
