@@ -2,29 +2,28 @@ var net = require('net'),
 //  agent = require('webkit-devtools-agent'),
   http = require('http'),
   messages = require('./lib/messages'),
-  Conveyor = require('./lib/conveyor'),
-  conveyor = new Conveyor;
-
-conveyor.onmsg({type: 'CAM'}, function (msg) {
-  //console.log('wtf!!!');
+  Conveyor = require('./lib/conveyor');
+Conveyor.onmsg({type: 'CAM'}, function (msg) {
+  
 })
 
-conveyor.onmsg({type: 'CAM', action: 'REC'}, function (msg) {
-  //console.log('recording?');
+Conveyor.onmsg({type: 'CAM', action: 'REC', id: '0'}, function (msg) {
+  console.log('send');
+  Conveyor.send({
+    msg: 'Msg',
+    type: 'WTF',
+    id: '0',
+    action: 'WOW',
+    params: {
+      count: 1,
+      time: (new Date).toISOString()
+    }
+  });
 })
 
-conveyor.onmsg({type: 'CORE'}, function (msg) {
+Conveyor.onmsg({type: 'CORE'}, function (msg) {
   //console.log(new Date);
 })
-t1 = new Date()
-for (var i = 10000; i--;) {
-  (function (i) {
-    conveyor.onmsg({type: 'CAM', id: i}, function (msg) {
-      //console.log('got cam', i);
-    })
-  }) (i)
-}
-console.log((new Date) - t1);
 console.log('pid', process.pid)
 /**** Server ****/
 server = net.createServer();
@@ -34,11 +33,12 @@ server.on('listening', function () {
 });
 
 server.on('connection', function (client) {
-  var decomposer = new messages.decomposer(),
-  composer =  new messages.composer();
-  conveyor = new Conveyor;
-  client.pipe(decomposer).pipe(conveyor);
+   Conveyor.bindSocket(client);
+  
   client.on('error', function (err) {
     console.error(err);
+  })
+  client.on('end', function (err) {
+    Conveyor.unbindSocket(client);
   })
 })
