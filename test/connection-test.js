@@ -20,7 +20,7 @@ vows.describe('connection-test').addBatch({
   },
   'Connect to listener': {
     topic: function () {
-      socket = iq.connect('127.0.0.1', 'iidk');
+      socket = iq.connect({port: 'iidk'});
       return socket;
     },
     'Check socket': function (topic) {
