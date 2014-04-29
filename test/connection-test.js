@@ -62,8 +62,8 @@ vows.describe('connection-test').addBatch({
         assert.isObject(msg.params);
         assert.match(msg.params.time, /\d{2}:\d{2}:\d{2}/);
         assert.match(msg.params.date, /\d{2}-\d{2}-\d{2}/);
-        assert.match(msg.params.fraction, /\d{3}/);
-        assert.match(msg.params.guid, /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/);
+        assert.match(msg.params.fraction, /\d{1,3}/);
+        assert.match(msg.params.guid, /[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}/);
       }
     }
   }
