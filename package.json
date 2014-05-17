@@ -20,6 +20,7 @@
     "url": "https://github.com/insonifi/iq"
   },
   "depndencies": {
+    "q": ""
   },
   "devDependencies": {
     "vows": ">=0.7"
