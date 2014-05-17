@@ -18,7 +18,6 @@ vows.describe('connection-test').addBatch({
     'Socket open': function (topic) {
       var address = topic.address();
       assert.isObject(topic);
-      assert.equal(address.address, '0.0.0.0');
       assert.equal(address.port, '21030');
     }
   },
