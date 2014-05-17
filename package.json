@@ -19,7 +19,7 @@
     "type": "git",
     "url": "https://github.com/insonifi/iq"
   },
-  "depndencies": {
+  "dependencies": {
     "q": ">=1.0.1"
   },
   "devDependencies": {
