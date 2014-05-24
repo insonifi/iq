@@ -9,9 +9,7 @@
       "email": "mail@gmail.com"
     }
   ],
-  "bin": "./bin/iq",
   "scripts": {
-    "start": "node ./bin/iq",
     "test": "vows --spec"
   },
   "main": "./lib/iq",
