@@ -50,6 +50,30 @@ vows.describe('connection-test').addBatch({
         assert.include(msg, 'params');
       }
     },
+    'Send Core Reaction (Server -> Client)': {
+      topic: function () {
+        var c_message = {type: 'OBJECT', action: 'ACTION', id: '2', params: {name0: 'one', name1: 'two'}},
+          core_message = {type: 'CORE', action: 'DO_REACT'};
+        iq_client.on(core_message, (function (msg) {
+          this.callback(null, msg);
+        }).bind(this));
+        iq_server.sendCoreReact(c_message);
+      },
+      'Received Core reaction': function (err, msg) {
+        assert.equal(msg.msg, 'Event');
+        assert.equal(msg.type, 'CORE');
+        assert.equal(msg.id, '');
+        assert.equal(msg.action, 'DO_REACT');
+        assert.include(msg, 'params');
+        assert.equal(msg.params.param0_name, 'name0');
+        assert.equal(msg.params.param0_val, 'one');
+        assert.equal(msg.params.param1_name, 'name1');
+        assert.equal(msg.params.param1_val, 'two');
+        assert.equal(msg.params.source_type, 'OBJECT');
+        assert.equal(msg.params.action, 'ACTION');
+        assert.equal(msg.params.id, '2');
+      }
+    },
     'Send/receive event (Client -> Server)': {
       topic: function () {
         var b_message = {type: 'OBJECT', action: 'ACTION', id: '1'},
