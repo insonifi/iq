@@ -2,7 +2,14 @@ var iq_server = require('../lib/iq'),
   iq_client = require('../lib/iq'),
   vows = require('vows'),
   assert = require('assert'),
-  i = 0;
+  i = 0,
+  generateString = function (len) {
+    var output = '';
+    for (; len--; ){
+      output += '0';
+    }
+    return output
+  };
 
 process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err);
@@ -106,6 +113,71 @@ vows.describe('connection-test').addBatch({
         assert.equal(msg.action, 'ACTION');
         assert.equal(msg.id, '2');
         assert.include(msg, 'params');
+      }
+    },
+    'Long parameters': {
+      'up to 8-bit length': {
+        topic: function () {
+          var param_val = generateString(Math.pow(2, 8) - 2),
+              message = {
+                type: 'OBJECT',
+                action: 'ACTION',
+                id: '3',
+                params: {
+                  param: param_val
+                }
+              };
+          iq_client.on(message, (function (msg) {
+            this.callback(null, msg);
+          }).bind(this));
+          iq_server.sendEvent(message);
+        },
+        'up to 8-bit length': function (err, msg) {
+          var param_val = generateString(Math.pow(2, 8) - 2)
+          assert.equal(msg.params.param.length, param_val.length);
+        }
+      },
+      'up to 16-bit length': {
+        topic: function () {
+          var param_val = generateString(Math.pow(2, 16) - 2),
+              message = {
+                type: 'OBJECT',
+                action: 'ACTION',
+                id: '4',
+                params: {
+                  param: param_val
+                }
+              };
+          iq_client.on(message, (function (msg) {
+            this.callback(null, msg);
+          }).bind(this));
+          iq_server.sendEvent(message);
+        },
+        'up to 16-bit length': function (err, msg) {
+          var param_val = generateString(Math.pow(2, 16) - 2)
+          assert.equal(msg.params.param.length, param_val.length);
+        }
+      },
+      'more then 16-bit length (32-bit is unachievable due to V8 memory limit)': {
+        topic: function () {
+          var param_val = generateString(Math.pow(2, 20)),
+              message = {
+                type: 'OBJECT',
+                action: 'ACTION',
+                id: '5',
+                params: {
+                  param: param_val
+                }
+              };
+          iq_client.on(message, (function (msg) {
+            this.callback(null, msg);
+          }).bind(this));
+          iq_server.sendEvent(message);
+        },
+        'more then 16-bit length': function (err, msg) {
+          var param_val = generateString(Math.pow(2, 20))
+          assert.equal(msg.params.param.length, param_val.length);
+        }
       }
     }
   },
