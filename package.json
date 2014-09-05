@@ -18,7 +18,7 @@
     "url": "https://github.com/insonifi/iq-node"
   },
   "dependencies": {
-    "q": ">=1.0.1"
+    "es6-promise": ""
   },
   "devDependencies": {
     "vows": ">=0.7"
