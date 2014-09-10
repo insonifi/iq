@@ -1,4 +1,4 @@
-var iq = require('../lib/iq');
+var iq = require('../iqnode');
 
 iq.listen('iidk');
 iq.on({}, function (msg) {
