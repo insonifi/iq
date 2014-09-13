@@ -1,5 +1,5 @@
-var iq_server = require('../lib/iqnode'),
-  iq_client = require('../lib/iqnode'),
+var iq_server = require('../iqnode'),
+  iq_client = require('../iqnode'),
   vows = require('vows'),
   assert = require('assert'),
   i = 0,
