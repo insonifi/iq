@@ -10,7 +10,6 @@
     }
   ],
   "scripts": {
-    "postinstall": "grunt",
     "test": "grunt test"
   },
   "main": "./lib/iqnode.js",
