@@ -1,4 +1,4 @@
-var iq = require('../iqnode'),
+var iq = require('../lib/iq'),
     catchErr = function (e) { console.log(e); };
 
 iq.connect({ip: '127.0.0.1', iidk: '1', host: 'VM490'})
