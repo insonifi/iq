@@ -11,14 +11,14 @@ module.exports = function(grunt) {
       },
       dist: {
         src: ['lib/*.js'], //Using mini match for your scripts to concatenate
-        dest: 'lib/iqnode.js' //where to output the script
+        dest: 'iqnode.js' //where to output the script
       }
     },
     //our uglify options
     uglify: {
       js: {
         files: {
-        'lib/iqnode.js': ['lib/iqnode.js'] //save over the newly created script
+        'iqnode.js': ['iqnode.js'] //save over the newly created script
         }
       }
     },
