@@ -161,7 +161,7 @@ vows.describe('connection-test').addBatch({
           assert.equal(msg.params.param.length, param_val.length);
         }
       },
-      'more then 16-bit length (32-bit is unachievable due to V8 memory limit)': {
+      'more than 16-bit length (32-bit is unachievable due to V8 memory limit)': {
         topic: function () {
           var param_val = generateString(Math.pow(2, 20)),
               message = {
