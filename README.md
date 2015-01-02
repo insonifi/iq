@@ -12,7 +12,7 @@
   * *npm* packages (e.g. database drivers).
   * Wide platform support (Windows, Linux, Mac OS).
 * Pure Javascript, as in "no compiling and easy debugging".
-* Perfect for web applications.
+* Perfect for web applications and integration with web services.
   * HTTP support out-of-the-box.
 
 ## Installation
@@ -24,7 +24,7 @@ npm install --save insonifi/iq-node
 First, you need to connect to server:
 ```javascript
 var iq = require('iq-node');
-iq.connect({ip: '192.168.123.45', iidk: '1'})
+iq.connect({iidk: '1'}); //connects to localhost
 ```
 Then you, can subscribe a callback, which will fire when defined message is received:
 ```javascript
