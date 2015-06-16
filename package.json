@@ -1,6 +1,6 @@
 {
   "name": "iq-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "insonifi@gmail.com",
   "description": "experiment to communicate with proprietary software",
   "contributors": [
