@@ -77,6 +77,7 @@ vows.describe('connection-test').addBatch({
         assert.equal(msg.params.param0_val, 'one');
         assert.equal(msg.params.param1_name, 'name1');
         assert.equal(msg.params.param1_val, 'two');
+        assert.equal(msg.params.params, '2');
         assert.equal(msg.params.source_type, 'OBJECT');
         assert.equal(msg.params.action, 'ACTION');
         assert.equal(msg.params.source_id, '2');
