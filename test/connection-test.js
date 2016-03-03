@@ -175,7 +175,7 @@ vows.describe('connection-test').addBatch({
           assert.equal(msg.params.param.length, param_val.length);
         }
       }
-    }
+    },
     /*
     'API:': {
       'Get config:': {
@@ -220,4 +220,27 @@ vows.describe('connection-test').addBatch({
 
     /**/
   }
+}).addBatch({
+  'Internal events': {
+    'Disconnect': {
+      topic: function () {
+        let callback = this.callback;
+        iq_client.on({type: 'IQ', action: 'DISCONNECT'}, (msg) => callback(null, msg));
+        iq_client.disconnect();
+      },
+      'event received': function (err, msg) {
+        assert.isObject(msg);
+      },
+    },
+    'Connected': {
+      topic: function () {
+        let callback = this.callback;
+        iq_client.on({type: 'IQ', action: 'CONNECTED'}, (msg) => callback(null, msg));
+        iq_client.connect({port: 'iidk'}).catch((err) => callback(err));
+      },
+      'event received': function (err, msg) {
+        assert.isObject(msg);
+      },
+    },
+  },
 }).export(module);
