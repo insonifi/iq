@@ -1,6 +1,8 @@
 'use strict';
-var iq_server = require('../lib/iq'),
-  iq_client = require('../lib/iq'),
+var IQServer = require('../lib/iq').Server,
+  IQClient = require('../lib/iq').Client,
+  iq_server = new IQServer(),
+  iq_client = new IQClient(),
   vows = require('vows'),
   assert = require('assert'),
   i = 0,

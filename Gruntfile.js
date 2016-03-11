@@ -8,7 +8,8 @@ module.exports = function(grunt) {
       all : {
         src : ['test/*.js'],
         options : {
-          reporter : "spec"
+          reporter : "spec",
+          force: true,
         }
       }
     }
