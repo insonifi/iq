@@ -6,9 +6,6 @@ var IQServer = require('../lib/iq').Server,
   vows = require('vows'),
   assert = require('assert'),
   i = 0,
-  error = function (e) {
-    console.err(e);
-  },
   generateString = function (len) {
     var output = '';
     for (; len--; ){
@@ -24,36 +21,36 @@ process.on('uncaughtException', function(err) {
 vows.describe('connection-test').addBatch({
   'Start listener': {
     topic: function () {
-      let callback = this.callback;
-      iq_server.listen('iidk').then((socket) => callback(null, socket));
+      iq_server.listen('iidk')
+        .then((socket) => this.callback(null, socket))
+        .catch(this.callback);
     },
-    'Socket open': function (topic) {
-      let callback = this.callback;
-      let address = topic.address();
-      assert.isObject(topic);
+    'Socket open': function (socket) {
+      let address = socket.address();
+      assert.isObject(socket);
       assert.equal(address.port, '21030');
     }
   },
   'Connect to listener': {
     topic: function () {
-      let callback = this.callback;
-      iq_client.connect({port: 'iidk'}).then((socket) => callback(null, socket));
+      iq_client.connect({port: 'iidk'})
+        .then((socket) => this.callback(null, socket))
+        .catch(this.callback);
     },
-    'Socket open': function (topic) {
-      assert.isObject(topic);
-      assert.equal(topic.remoteAddress, '127.0.0.1');
-      assert.equal(topic.remotePort, '21030');
+    'Socket open': function (socket) {
+      assert.isObject(socket);
+      assert.equal(socket.remoteAddress, '127.0.0.1');
+      assert.equal(socket.remotePort, '21030');
     }
   },
   'Test communication:': {
     'Send/receive reaction (Server -> Client)': {
       topic: function () {
         let a_message = {type: 'OBJECT', action: 'ACTION', id: '0'};
-        let callback = this.callback;
-        iq_client.on(a_message, (msg) => callback(null, msg));
+        iq_client.on(a_message, (m) => this.callback(null, m));
         iq_server.sendReact(a_message);
       },
-      'Received reaction': function (err, msg) {
+      'Received reaction': function (msg) {
         assert.equal(msg.msg, 'React');
         assert.equal(msg.type, 'OBJECT');
         assert.equal(msg.action, 'ACTION');
@@ -65,11 +62,10 @@ vows.describe('connection-test').addBatch({
       topic: function () {
         let c_message = {type: 'OBJECT', action: 'ACTION', id: '2', params: {name0: 'one', name1: 'two'}};
         let core_message = {type: 'CORE', action: 'DO_REACT'};
-        let callback = this.callback;
-        iq_client.on(core_message, (msg) => callback(null, msg));
+        iq_client.on(core_message, (m) => this.callback(null, m));
         iq_server.sendCoreReact(c_message);
       },
-      'Received Core reaction': function (err, msg) {
+      'Received Core reaction': function (msg) {
         assert.equal(msg.msg, 'Event');
         assert.equal(msg.type, 'CORE');
         assert.equal(msg.id, '');
@@ -88,11 +84,10 @@ vows.describe('connection-test').addBatch({
     'Send/receive event (Client -> Server)': {
       topic: function () {
         let b_message = {type: 'OBJECT', action: 'ACTION', id: '1'};
-        let callback = this.callback;
-        iq_server.on(b_message, (msg) => callback(null, msg));
+        iq_server.on(b_message, (m) => this.callback(null, m));
         iq_client.sendEvent(b_message);
       },
-      'Received event': function (err, msg) {
+      'Received event': function (msg) {
         assert.equal(msg.msg, 'Event');
         assert.equal(msg.type, 'OBJECT');
         assert.equal(msg.action, 'ACTION');
@@ -104,11 +99,10 @@ vows.describe('connection-test').addBatch({
       topic: function () {
         let iface_message = {type: 'ACTIVEX', action: 'EVENT', params: {objtype: 'OBJECT', objaction: 'ACTION', objid: '2'}};
         let subs_message = {type: 'OBJECT', action: 'ACTION', id: '2'};
-        let callback = this.callback;
-        iq_client.on(subs_message, (msg) => this.callback(null, msg));
+        iq_client.on(subs_message, (m) => this.callback(null, m));
         iq_server.sendEvent(iface_message);
       },
-      'Compare sent/received message': function (err, msg) {
+      'Compare sent/received message': function (msg) {
         assert.equal(msg.msg, 'Event');
         assert.equal(msg.type, 'OBJECT');
         assert.equal(msg.action, 'ACTION');
@@ -128,11 +122,10 @@ vows.describe('connection-test').addBatch({
               param: param_val
             }
           };
-          let callback = this.callback;
-          iq_client.on(message, (msg) => callback(null, msg));
+          iq_client.on(message, (m) => this.callback(null, m));
           iq_server.sendEvent(message);
         },
-        'up to 8-bit length': function (err, msg) {
+        'up to 8-bit length': function (msg) {
           let param_val = generateString(Math.pow(2, 8) - 2);
           assert.equal(msg.params.param.length, param_val.length);
         }
@@ -148,11 +141,10 @@ vows.describe('connection-test').addBatch({
               param: param_val
             }
           };
-          let callback = this.callback;
-          iq_client.on(message, (msg) => callback(null, msg));
+          iq_client.on(message, (m) => this.callback(null, m));
           iq_server.sendEvent(message);
         },
-        'up to 16-bit length': function (err, msg) {
+        'up to 16-bit length': function (msg) {
           let param_val = generateString(Math.pow(2, 16) - 2)
           assert.equal(msg.params.param.length, param_val.length);
         }
@@ -168,11 +160,10 @@ vows.describe('connection-test').addBatch({
               param: param_val
             }
           };
-          let callback = this.callback;
-          iq_client.on(message, (msg) => callback(null, msg));
+          iq_client.on(message, (m) => this.callback(null, m));
           iq_server.sendEvent(message);
         },
-        'more then 16-bit length': function (err, msg) {
+        'more then 16-bit length': function (msg) {
           let param_val = generateString(Math.pow(2, 20))
           assert.equal(msg.params.param.length, param_val.length);
         }
@@ -182,16 +173,15 @@ vows.describe('connection-test').addBatch({
     'API:': {
       'Get config:': {
         topic: function () {
-          let callback = this.callback;
-          iq_server.on({type: 'CORE', action: 'GET_CONFIG'}, (function (msg) {
+          iq_server.on({type: 'CORE', action: 'GET_CONFIG'}, (msg) => {
             if (msg.params.objtype !== undefined) {
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_CONFIG', params: {objtype: msg.params.objtype, objid: '0'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_CONFIG', params: {objtype: msg.params.objtype, objid: '1'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_CONFIG', params: {objtype: msg.params.objtype, objid: '2'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'END_CONFIG'});
             }
-          }).bind(this));
-          iq_client.get({type: 'CAM', prop: 'CONFIG'}).then((list) => callback(null, list), error);
+          });
+          iq_client.get({type: 'CAM', prop: 'CONFIG'}).then((list) => this.callback(null, list));
         },
         'Got list of 3': function (err, list) {
           assert.lengthOf(list, 3);
@@ -202,15 +192,15 @@ vows.describe('connection-test').addBatch({
       'Get state:': {
         topic: function () {
           let callback = this.callback;
-          iq_server.on({type: 'CORE', action: 'GET_STATE'}, (function (msg) {
+          iq_server.on({type: 'CORE', action: 'GET_STATE'}, (msg) => {
             if (msg.params.objtype !== undefined) {
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_STATE', params: {objtype: msg.params.objtype, objid: '0'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_STATE', params: {objtype: msg.params.objtype, objid: '1'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'OBJECT_STATE', params: {objtype: msg.params.objtype, objid: '2'}});
               iq_server.sendEvent({type: 'ACTIVEX', action: 'END_STATE'});
             }
-          }).bind(this));
-          iq_client.get({type: 'CAM', prop: 'STATE'}).then((list) => callback(null, list), error);
+          });
+          iq_client.get({type: 'CAM', prop: 'STATE'}).then((list) => this.callback(null, list));
         },
         'Got list of 3': function (err, list) {
           assert.lengthOf(list, 3);
@@ -226,23 +216,35 @@ vows.describe('connection-test').addBatch({
   'Internal events': {
     'Disconnect': {
       topic: function () {
-        let callback = this.callback;
-        iq_client.on({type: 'IQ', action: 'DISCONNECT'}, (msg) => callback(null, msg));
+        iq_client.on({type: 'IQ', action: 'DISCONNECTED'}, (m) => this.callback(null, m));
         iq_client.disconnect();
       },
-      'event received': function (err, msg) {
-        assert.isObject(msg);
+      'event received': function (msg) {
+        assert.include(msg, 'type');
       },
     },
     'Connected': {
       topic: function () {
-        let callback = this.callback;
-        iq_client.on({type: 'IQ', action: 'CONNECTED'}, (msg) => callback(null, msg));
-        iq_client.connect({port: 'iidk'}).catch((err) => callback(err));
+        iq_client.on({type: 'IQ', action: 'CONNECTED'}, (m) => this.callback(null, m));
+        iq_client.connect({port: 'iidk'}).catch(this.callback);
       },
-      'event received': function (err, msg) {
-        assert.isObject(msg);
+      'event received': function (msg) {
+        assert.include(msg, 'type');
       },
+    },
+  },
+}).addBatch({
+  'Reconnection': {
+    topic: function () {
+      const iqConnected = {type: 'IQ', action: 'CONNECTED'};
+      iq_client.disconnect();
+      iq_client.connect({port: 'iidk', reconnect: true})
+        .then(() => iq_client.on(iqConnected, (m) => this.callback(null, m)))
+        .then(iq_client.disconnect)
+        .catch(this.callback);
+    },
+    'reconnected': function (msg) {
+      assert.include(msg, 'type');
     },
   },
 }).export(module);
